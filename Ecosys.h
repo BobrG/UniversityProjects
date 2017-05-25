@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 #include <algorithm>
 #include <iostream>
 
@@ -35,19 +36,22 @@ class Feature;
 
 class Modifier { // class of modifiers which influence on each object or container
 public:
+	virtual void set_type(std::string _type);
+	std::string get_type() { return type; }	
 
-	void connect(Feature* _Feature);
-	void connect(Modifier* _Modifier);
+	bool connect(Feature* _Feature);
+	bool connect(Modifier* _Modifier);
 
 	void disconnect(Feature* _Feature);
 	void disconnect(Modifier* _Modifier);
 
-	virtual void update(Modifier& _Modifier, void* what = 0);
+	virtual void update(Modifier& _Modifier);
 
 	void notify();
 
 	virtual ~Modifier() = 0;
 private:
+	std::string type;
 	std::vector<Feature*> dependers_f;
 	std::vector<Modifier*> dependers_m;
 };
@@ -57,9 +61,17 @@ class Feature { // class of features which define every object or container
 public:
 	Feature();
 
+	virtual void set_type(std::string _type);
+	std::string get_type() { return type; }
+
 	virtual void update(Modifier& _Modifier, void* what = 0);
 	
 	virtual virtual ~Feature() = 0;
+private:
+	std::string type;
+	// consider next:
+	// Modifier* _Modifier;
+	// or maybe we do not need it as we use Modifier as argument in update function;
 };
 
 class Object { // object which contain features only
@@ -70,7 +82,7 @@ public:
 
 	void remove_feature(Feature* _Feature);
 
-private:
+protected:
 	std::vector<Feature*> _Features;
 };
 
@@ -78,7 +90,9 @@ class Container: public Object { // container inherits ability of holding featur
 public:
 	void Init() { Headmaster = NULL; }
 
-	//void notify();
+	void set_name(std::string& tmp) { name = tmp; }
+	std::string get_name() { return name; }
+	
 	void set_headmaster(Container* _Container);
 
 	void add_modifier(Modifier* _Modifier);
@@ -87,6 +101,7 @@ public:
 
 	void add_container(Container* _Container);
 private:
+	std::string name;
 	std::vector<Container*> _Containers;
 	std::vector<Object*> _Objects;
 	std::vector<Modifier*> _Modifiers;

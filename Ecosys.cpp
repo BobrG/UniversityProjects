@@ -1,9 +1,16 @@
 #include "Ecosys.h"
 
-void Modifier::connect(Feature* _Feature) {
-	dependers_f.push_back(_Feature);
+void Modifier::set_type(std::string _type) { type = _type; }
+
+bool Modifier::connect(Feature* _Feature) {
+	if (type.compare(_Feature->get_type())) {
+		dependers_f.push_back(_Feature);
+		return true;
+	}
+	else
+		return false;
 }
-void Modifier::connect(Modifier* _Modifier) {
+bool Modifier::connect(Modifier* _Modifier) {
 	dependers_m.push_back(_Modifier);
 }
 
@@ -15,8 +22,8 @@ void Modifier::disconnect(Modifier* _Modifier) {
 	dependers_m.erase(std::remove(dependers_m.begin(), dependers_m.end(), _Modifier), dependers_m.end());
 }
 
-void Modifier::update(Modifier& _Modifier, void* what = 0) {
-	// change value
+void Modifier::update(Modifier& _Modifier) {
+	// change values;
 	_Modifier.notify();
 }
 
@@ -32,6 +39,8 @@ void Modifier::notify() {
 Feature::Feature() {
 	// define values;
 }
+
+void Feature::set_type(std::string _type) { type = _type; }
 
 void Feature::update(Modifier& _Modifier, void* what = 0) {
 	// change value;
@@ -62,8 +71,13 @@ void Container::add_modifier(Modifier* _Modifier) {
 void Container::add_container(Container* _Container) {
 	_Container->set_headmaster(this);
 	_Containers.push_back(_Container);
-	for (int i = 0; i < _Container->_Modifiers.size(); ++i) {
-//		_Container->_Modifiers[i]->connect();
+	// rising up from certain container to the first container;
+	for (size_t j = 0; j < _Container->_Modifiers.size(); ++j) {
+		for (Container* tmp = this; tmp != NULL; tmp = tmp->Headmaster) {
+			for (size_t i = 0; i < _Modifiers.size(); ++i) {
+				tmp->_Modifiers[i]->connect(_Container->_Modifiers[j]);
+			}
+		}
 	}
 }
 void Container::add_object(Object* _Object) {

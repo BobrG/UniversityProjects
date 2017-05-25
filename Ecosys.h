@@ -17,6 +17,8 @@ public:
 
 	void disconnect(Feature* _Feature);
 
+	void change_status(void* what);
+
 	virtual void notify(Feature* _Feature = 0, void* what = 0);
 private:
 	std::vector<Feature*> dependers;
@@ -33,10 +35,6 @@ public:
 };
 
 class Object {
-private:
-
-	std::vector<Feature*> _Features;
-
 public:
 	Object();
 
@@ -45,22 +43,21 @@ public:
 	void remove_feature(Feature* _Feature);
 
 	void handle_modification(); // object gets a signal about changes in container and handle event;
+private:
+	std::vector<Feature*> _Features;
 };
 
-class Container {
-private:
-
-	std::vector<Object*> _Objects;
-	std::vector<Container*> _Containers;
-	std::vector<Feature*> _Features;
-	std::vector<Modifier*> _Modifiers;
-
-	void notify();
+class Container: public Object {
 public:
 	Container(); 
+
+	void notify();
 
 	void add_object(Object& _Object); // add and affect with modificator; ???
 
 	void add_container(Container& _Container);
-
+private:
+	std::vector<Container*> _Containers;
+	std::vector<Object*> _Objects;
+	std::vector<Modifier*> _Modifiers;
 };

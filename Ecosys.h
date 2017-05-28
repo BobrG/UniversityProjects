@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <memory>
 #include <string>
 #include <functional>
 #include <algorithm>
@@ -53,14 +54,18 @@ public:
 	void disconnect(Feature* _Feature);
 	void disconnect(RealModifier* _Modifier);
 
+	virtual void update(RealModifier* _Modifier) {}
+	virtual void notify() {}
+
 protected:
 	std::string name;
 	std::vector<std::string> type;
 	std::vector<Feature*> dependers_f;
 	std::vector<RealModifier*> dependers_m;
 };
-template <class T> class Modifier : public RealModifier { // class of modifiers which influence on each object or container
-
+template <typename T> 
+class Modifier : public RealModifier { // class of modifiers which influence on each object or container
+public:
 	void Init(std::string _type, std::function<void(T)> _handler, std::string _name) { add_handler(_handler); add_type(_type); set_name(_name); }
 
 	void add_handler(std::function<void(T)> _handler) { handler = _handler; }
@@ -75,16 +80,17 @@ protected:
 
 class Feature { // class of features which define every object or container 
 public:
-	virtual void Init();
+	Feature();
 
-	virtual void set_type(std::string _type);
+	void set_type(std::string _type);
 	std::string get_type() { return type; }
+
 
 	virtual void set_value(std::string what) = 0;
 
 	virtual void update(RealModifier* _Modifier, std::string what = 0) = 0;
 	
-	virtual virtual ~Feature() = 0;
+	virtual ~Feature() = 0;
 protected:
 	std::string name;
 	std::string type;
@@ -95,7 +101,10 @@ class Container;
 
 class Object { // object which contain features only
 public:
-	virtual void Init();
+	Object();
+
+	void set_name(std::string _name) { name = _name; }
+	std::string get_name() { return name; }
 
 	void add_feature(Feature* _Feature); 
 
@@ -103,25 +112,33 @@ public:
 
 	void set_headmaster(Container* _Container);
 
-	Feature* get_feature(int i);
+	Feature* get_feature(size_t i);
 
 private:
 	Container* Headmaster;
+	std::string name;
 	std::vector<Feature*> _Features;
 };
 
 class Container { // container inherits ability of holding features from object and adds ability of modifying features;
 public:
-	void Init() { Headmaster = NULL; }
+	Container(std::string& _name) : 
+		name(_name) { Headmaster = NULL; _Features.resize(0); _Modifiers.resize(0); _Containers.resize(0); _Objects.resize(0); }
+	
+	//void Init() { Headmaster = NULL; }
 
 	void set_name(std::string& tmp) { name = tmp; }
 	std::string get_name() { return name; }
 
 	void set_headmaster(Container* _Container);
 
+	void add_feature(Feature* _Feature);
+
+	void remove_feature(Feature* _Feature);
+
 	void add_modifier(RealModifier* _Modifier);
 
-	void add_object(Object* _Object); // add and affect with modificator; ???
+	void add_object(Object* _Object); 
 
 	void add_container(Container* _Container);
 private:

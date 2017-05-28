@@ -42,11 +42,13 @@ class Feature;
 
 class RealModifier {
 public:
-	virtual void set_name(std::string _name) { name = _name; }
-	virtual std::string get_name() { return name; }
+	void set_name(std::string _name) { name = _name; }
+	std::string get_name() { return name; }
 
-	virtual void add_type(std::string _type) { type.push_back(_type); }
-	virtual void get_type(std::vector<std::string> _type) { _type = type; }
+	void set_active(bool _active) { is_active = _active; }
+
+	void add_type(std::string _type) { type.push_back(_type); }
+	void get_type(std::vector<std::string> _type) { _type = type; }
 
 	bool connect(Feature* _Feature);
 	bool connect(RealModifier* _Modifier);
@@ -54,10 +56,12 @@ public:
 	void disconnect(Feature* _Feature);
 	void disconnect(RealModifier* _Modifier);
 
-	virtual void update(RealModifier* _Modifier) {}
-	virtual void notify() {}
+	virtual void update(RealModifier* _Modifier) { }
+	void notify();
 
+	virtual ~RealModifier() = 0;
 protected:
+	bool is_active;
 	std::string name;
 	std::vector<std::string> type;
 	std::vector<Feature*> dependers_f;
@@ -66,13 +70,18 @@ protected:
 template <typename T> 
 class Modifier : public RealModifier { // class of modifiers which influence on each object or container
 public:
-	void Init(std::string _type, std::function<void(T)> _handler, std::string _name) { add_handler(_handler); add_type(_type); set_name(_name); }
+	Modifier(std::string _type, std::string _name) { set_name(_name); add_type(_type); is_active = true; }
+	
+	Modifier(std::string _type, std::function<void(T)> _handler, std::string _name) { add_type(_type); add_handler(_handler); set_name(_name); is_active = true; }
 
 	void add_handler(std::function<void(T)> _handler) { handler = _handler; }
 
-	void update(RealModifier* _Modifier);
+	void update(RealModifier* _Modifier) {
+			handler(value);
+			std::cout << "Modifier " << _Modifier->get_name() << " changed." <<std::endl;
+			_Modifier->notify();
+	}
 
-	void notify();
 protected:
 	T value;
 	std::function<void(T)> handler;

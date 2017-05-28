@@ -28,16 +28,7 @@ void RealModifier::disconnect(RealModifier* _Modifier) {
 	dependers_m.erase(std::remove(dependers_m.begin(), dependers_m.end(), _Modifier), dependers_m.end());
 }
 
-template <typename T> 
-void Modifier<T>::update(RealModifier* _Modifier) {
-	// change values;
-	handler(value);
-	std::cout << "Modifier " << _Modifier->get_name() << " changed." <<std::endl;
-	_Modifier->notify();
-}
-
-template <typename T>
-void Modifier<T>::notify() {
+void RealModifier::notify() {
 	for (size_t i = 0; i < dependers_f.size(); ++i) {
 		dependers_f[i]->update(this);
 	}
@@ -45,6 +36,18 @@ void Modifier<T>::notify() {
 		dependers_m[i]->update(this);
 	}
 }
+
+RealModifier::~RealModifier() {
+	is_active = false;
+}
+
+//template <typename T> 
+//void Modifier<T>::update(RealModifier* _Modifier) {
+//	// change values;
+//	handler(value);
+//	std::cout << "Modifier " << _Modifier->get_name() << " changed." <<std::endl;
+//	_Modifier->notify();
+//}
 
 Feature::Feature() {
 	// define values;

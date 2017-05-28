@@ -1,9 +1,6 @@
 #include "Ecosys.h"
 
-void Modifier::add_type(std::string _type) { type.push_back(_type); }
-void Modifier::set_name(std::string _name) { name = _name; }
-
-bool Modifier::connect(Feature* _Feature) {
+bool RealModifier::connect(Feature* _Feature) {
 	if (std::find(type.begin(),type.end(),_Feature->get_type()) != type.end()) {
 		dependers_f.push_back(_Feature);
 		return true;
@@ -11,7 +8,7 @@ bool Modifier::connect(Feature* _Feature) {
 	else
 		return false;
 }
-bool Modifier::connect(Modifier* _Modifier) {
+bool RealModifier::connect(RealModifier* _Modifier) {
 	std::vector<std::string> tmp;
 	_Modifier->get_type(tmp);
 	for (size_t i = 0; i < tmp.size(); ++i) {
@@ -24,20 +21,21 @@ bool Modifier::connect(Modifier* _Modifier) {
 }
 
 
-void Modifier::disconnect(Feature* _Feature) {
+void RealModifier::disconnect(Feature* _Feature) {
 	dependers_f.erase(std::remove(dependers_f.begin(), dependers_f.end(), _Feature), dependers_f.end());
 }
-void Modifier::disconnect(Modifier* _Modifier) {
+void RealModifier::disconnect(RealModifier* _Modifier) {
 	dependers_m.erase(std::remove(dependers_m.begin(), dependers_m.end(), _Modifier), dependers_m.end());
 }
 
-void Modifier::update(Modifier* _Modifier, void* what = 0) {
+template <class T> void Modifier<class T>::update(RealModifier* _Modifier) {
 	// change values;
+	handler(value);
 	std::cout << "Modifier " << _Modifier->get_name() << " changed." <<std::endl;
 	_Modifier->notify();
 }
 
-void Modifier::notify(void* what = 0) {
+template <class T> void Modifier<class T>::notify() {
 	for (size_t i = 0; i < dependers_f.size(); ++i) {
 		dependers_f[i]->update(this);
 	}
@@ -50,19 +48,10 @@ void Feature::Init() {
 	// define values;
 	name = "abstract";
 	type = "abstract";
+	is_active = true;
 }
 
 void Feature::set_type(std::string _type) { type = _type; }
-
-void Temperature_Feature::Init() {
-	name = "temperature";
-	type = "temperature";
-	degrees_c = 0;
-}
-
-void Temperature_Feature::update(Modifier* _Modifier, void* what = 0) {
-
-}
 
 void Object::Init() {
 	// define Object's values, start features, etc;
@@ -100,7 +89,7 @@ void Container::set_headmaster(Container* _Container) {
 	Headmaster = _Container;
 }
 
-void Container::add_modifier(Modifier* _Modifier) {
+void Container::add_modifier(RealModifier* _Modifier) {
 	_Modifiers.push_back(_Modifier);
 }
 void Container::add_container(Container* _Container) {

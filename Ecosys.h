@@ -1,11 +1,9 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <functional>
 #include <algorithm>
 #include <iostream>
-
-// Implement various argument-values system!
-
 
 // So, I understand the structure as follows:
 // Our smallest constituent unit is Feature. Features are subscribers or observers. They only react
@@ -40,42 +38,40 @@
 
 class Feature;
 
-/*template <class eff_type>*/
-class Modifier { // class of modifiers which influence on each object or container
-public:
-	void set_name(std::string _name);
-	std::string get_name() { return name; }
 
-	virtual void add_type(std::string _type);
-	void get_type(std::vector<std::string> _type) { _type = type; }
+class RealModifier {
+public:
+	virtual void set_name(std::string _name) { name = _name; }
+	virtual std::string get_name() { return name; }
+
+	virtual void add_type(std::string _type) { type.push_back(_type); }
+	virtual void get_type(std::vector<std::string> _type) { _type = type; }
 
 	bool connect(Feature* _Feature);
-	bool connect(Modifier* _Modifier);
+	bool connect(RealModifier* _Modifier);
 
 	void disconnect(Feature* _Feature);
-	void disconnect(Modifier* _Modifier);
+	void disconnect(RealModifier* _Modifier);
 
-	virtual void update(Modifier* _Modifier, std::string what = 0);
-
-	virtual void notify(std::string what = 0);
-
-	virtual ~Modifier() = 0;
 protected:
 	std::string name;
 	std::vector<std::string> type;
-	//eff_type eff;
 	std::vector<Feature*> dependers_f;
-	std::vector<Modifier*> dependers_m;
+	std::vector<RealModifier*> dependers_m;
 };
+template <class T> class Modifier : public RealModifier { // class of modifiers which influence on each object or container
 
-class Temperature_Modifier : public Modifier {
-public:
-	void notify(std::string what = 0);
+	void Init(std::string _type, std::function<void(T)> _handler, std::string _name) { add_handler(_handler); add_type(_type); set_name(_name); }
 
-private:
-	double eff;
+	void add_handler(std::function<void(T)> _handler) { handler = _handler; }
+
+	void update(RealModifier* _Modifier);
+
+	void notify();
+protected:
+	T value;
+	std::function<void(T)> handler;
 };
-
 
 class Feature { // class of features which define every object or container 
 public:
@@ -86,25 +82,13 @@ public:
 
 	virtual void set_value(std::string what) = 0;
 
-	virtual void update(Modifier* _Modifier, std::string what = 0) = 0;
+	virtual void update(RealModifier* _Modifier, std::string what = 0) = 0;
 	
 	virtual virtual ~Feature() = 0;
 protected:
 	std::string name;
 	std::string type;
-
-	std::string handle_name; 
-};
-
-class Temperature_Feature : public Feature {
-public:
-	void Init();
-
-	void set_value(std::string what) { degrees_c = std::stod(what); }
-	
-	void update(Modifier* _Modifier, std::string what = 0);
-private:
-	double degrees_c;
+	bool is_active;
 };
 
 class Container;
@@ -135,7 +119,7 @@ public:
 
 	void set_headmaster(Container* _Container);
 
-	void add_modifier(Modifier* _Modifier);
+	void add_modifier(RealModifier* _Modifier);
 
 	void add_object(Object* _Object); // add and affect with modificator; ???
 
@@ -145,7 +129,7 @@ private:
 	std::vector<Feature*> _Features;
 	std::vector<Container*> _Containers;
 	std::vector<Object*> _Objects;
-	std::vector<Modifier*> _Modifiers;
+	std::vector<RealModifier*> _Modifiers;
 	Container* Headmaster;
 };
 

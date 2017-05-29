@@ -1,6 +1,6 @@
 #include "Ecosys.h"
 
-bool RealModifier::connect(Feature* _Feature) {
+bool RealModifier::connect(RealFeature* _Feature) {
 	if (std::find(type.begin(),type.end(),_Feature->get_type()) != type.end()) {
 		dependers_f.push_back(_Feature);
 		return true;
@@ -21,7 +21,7 @@ bool RealModifier::connect(RealModifier* _Modifier) {
 }
 
 
-void RealModifier::disconnect(Feature* _Feature) {
+void RealModifier::disconnect(RealFeature* _Feature) {
 	dependers_f.erase(std::remove(dependers_f.begin(), dependers_f.end(), _Feature), dependers_f.end());
 }
 void RealModifier::disconnect(RealModifier* _Modifier) {
@@ -49,18 +49,9 @@ RealModifier::~RealModifier() {
 //	_Modifier->notify();
 //}
 
-Feature::Feature() {
-	// define values;
-	name = "abstract";
-	type = "abstract";
-	is_active = true;
-}
-
-Feature::~Feature() {
+RealFeature::~RealFeature() {
 	is_active = false;
 }
-
-void Feature::set_type(std::string _type) { type = _type; }
 
 Object::Object() {
 	// define Object's values, start features, etc;
@@ -72,14 +63,14 @@ void Object::set_headmaster(Container* _Container) {
 	Headmaster = _Container;
 }
 
-void Object::add_feature(Feature* _Feature) {
+void Object::add_feature(RealFeature* _Feature) {
 	_Features.push_back(_Feature);
 }
-void Object::remove_feature(Feature* _Feature) {
+void Object::remove_feature(RealFeature* _Feature) {
 	_Features.erase(std::remove(_Features.begin(), _Features.end(), _Feature), _Features.end());
 }
 
-Feature* Object::get_feature(size_t i) {
+RealFeature* Object::get_feature(size_t i) {
 	// add exception catcher!
 	return _Features.at(i);
 	
@@ -97,11 +88,11 @@ void Container::set_headmaster(Container* _Container) {
 	Headmaster = _Container;
 }
 
-void Container::add_feature(Feature* _Feature) {
+void Container::add_feature(RealFeature* _Feature) {
 	_Features.push_back(_Feature);
 }
 
-void Container::remove_feature(Feature* _Feature) {
+void Container::remove_feature(RealFeature* _Feature) {
 	_Features.erase(std::remove(_Features.begin(), _Features.end(), _Feature), _Features.end());
 }
 
@@ -132,7 +123,7 @@ void Container::add_object(Object* _Object) {
 	_Object->set_headmaster(this);
 	_Objects.push_back(_Object);
 	std::cout << "Object " << _Object->get_name() << "was added." << std::endl;
-	Feature* tmp_f;
+	RealFeature* tmp_f;
 	for (size_t i = 0; (tmp_f = _Object->get_feature(i)) != NULL; ++i) {
 		for (Container* tmp = this; tmp != NULL; tmp = tmp->Headmaster) {
 			for (size_t j = 0; j < _Modifiers.size(); ++j) {

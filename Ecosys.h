@@ -37,7 +37,7 @@
 
 // ADD DERIVED CLASSES!!!
 
-class Feature;
+class RealFeature;
 
 
 class RealModifier {
@@ -50,34 +50,34 @@ public:
 	void add_type(std::string _type) { type.push_back(_type); }
 	void get_type(std::vector<std::string> _type) { _type = type; }
 
-	bool connect(Feature* _Feature);
+	bool connect(RealFeature* _Feature);
 	bool connect(RealModifier* _Modifier);
 
-	void disconnect(Feature* _Feature);
+	void disconnect(RealFeature* _Feature);
 	void disconnect(RealModifier* _Modifier);
 
 	virtual void update(RealModifier* _Modifier) { }
 	void notify();
 
-	virtual ~RealModifier() = 0;
+	virtual ~RealModifier();
 protected:
 	bool is_active;
 	std::string name;
 	std::vector<std::string> type;
-	std::vector<Feature*> dependers_f;
+	std::vector<RealFeature*> dependers_f;
 	std::vector<RealModifier*> dependers_m;
 };
-template <typename T> 
+template <typename TM> 
 class Modifier : public RealModifier { // class of modifiers which influence on each object or container
 public:
-	Modifier(std::string _type, std::string _name, T _value) { set_name(_name); add_type(_type); is_active = true; value = _value; }
+	Modifier(std::string _type, std::string _name, TM _value) { set_name(_name); add_type(_type); is_active = true; value = _value; }
 	
-	Modifier(std::string _type, std::function<void(T&)> _handler, std::string _name) { add_type(_type); add_handler(_handler); set_name(_name); is_active = true; }
+	Modifier(std::string _type, std::function<void(TM&)> _handler, std::string _name, TM _value) { add_type(_type); add_handler(_handler); set_name(_name); set_value(_value); is_active = true; }
 
-	void set_value(T _value) { value = _value; }
-	T get_value() { return value; }
+	void set_value(TM _value) { value = _value; }
+	TM get_value() { return value; }
 
-	void add_handler(std::function<void(T&)> _handler) { handler = _handler; }
+	void add_handler(std::function<void(TM&)> _handler) { handler = _handler; }
 
 	void update(RealModifier* _Modifier) {
 			handler(value);
@@ -86,29 +86,46 @@ public:
 	}
 
 protected:
-	T value;
-	std::function<void(T&)> handler;
+	TM value;
+	std::function<void(TM&)> handler;
 };
 
-class Feature { // class of features which define every object or container 
+class RealFeature { // class of features which define every object or container 
 public:
-	Feature();
+	void set_name(std::string _name) { name = _name; }
+	std::string get_name() { return name; }
 
-	void set_type(std::string _type);
+	void set_type(std::string _type) { type = _type; }
 	std::string get_type() { return type; }
 
-
-	virtual void set_value(std::string what) = 0;
-
-	virtual void update(RealModifier* _Modifier, std::string what = 0) = 0;
+	virtual void update(RealModifier* _Modifier) = 0;
 	
-	virtual ~Feature() = 0;
+	virtual ~RealFeature() = 0;
 protected:
 	std::string name;
 	std::string type;
 	bool is_active;
 };
 
+template <typename TF>
+class Feature : public RealFeature {
+public:
+	Feature() { is_active = true; }
+	Feature(std::string _name, std::string _type, std::function<void(TF&)> _handler, TF _value) { set_name(_name); set_type(_type); add_handler(_handler); set_value(_value); is_active = true; }
+	
+	void add_handler(std::function<void(TF&)> _handler) { handler = _handler; }
+
+	void set_value(TF _value) { value = _value; }
+	TF get_value() { return value; }
+	
+	void update(RealModifier* _Modifier) {}
+
+private:
+	std::function<void(TF&)> handler;
+	TF value;
+};
+
+// container and object 
 class Container;
 
 class Object { // object which contain features only
@@ -118,18 +135,18 @@ public:
 	void set_name(std::string _name) { name = _name; }
 	std::string get_name() { return name; }
 
-	void add_feature(Feature* _Feature); 
+	void add_feature(RealFeature* _Feature); 
 
-	void remove_feature(Feature* _Feature);
+	void remove_feature(RealFeature* _Feature);
 
 	void set_headmaster(Container* _Container);
 
-	Feature* get_feature(size_t i);
+	RealFeature* get_feature(size_t i);
 
 private:
 	Container* Headmaster;
 	std::string name;
-	std::vector<Feature*> _Features;
+	std::vector<RealFeature*> _Features;
 };
 
 class Container { // container inherits ability of holding features from object and adds ability of modifying features;
@@ -144,9 +161,9 @@ public:
 
 	void set_headmaster(Container* _Container);
 
-	void add_feature(Feature* _Feature);
+	void add_feature(RealFeature* _Feature);
 
-	void remove_feature(Feature* _Feature);
+	void remove_feature(RealFeature* _Feature);
 
 	void add_modifier(RealModifier* _Modifier);
 
@@ -155,7 +172,7 @@ public:
 	void add_container(Container* _Container);
 private:
 	std::string name;
-	std::vector<Feature*> _Features;
+	std::vector<RealFeature*> _Features;
 	std::vector<Container*> _Containers;
 	std::vector<Object*> _Objects;
 	std::vector<RealModifier*> _Modifiers;

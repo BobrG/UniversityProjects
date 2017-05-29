@@ -70,11 +70,14 @@ protected:
 template <typename T> 
 class Modifier : public RealModifier { // class of modifiers which influence on each object or container
 public:
-	Modifier(std::string _type, std::string _name) { set_name(_name); add_type(_type); is_active = true; }
+	Modifier(std::string _type, std::string _name, T _value) { set_name(_name); add_type(_type); is_active = true; value = _value; }
 	
-	Modifier(std::string _type, std::function<void(T)> _handler, std::string _name) { add_type(_type); add_handler(_handler); set_name(_name); is_active = true; }
+	Modifier(std::string _type, std::function<void(T&)> _handler, std::string _name) { add_type(_type); add_handler(_handler); set_name(_name); is_active = true; }
 
-	void add_handler(std::function<void(T)> _handler) { handler = _handler; }
+	void set_value(T _value) { value = _value; }
+	T get_value() { return value; }
+
+	void add_handler(std::function<void(T&)> _handler) { handler = _handler; }
 
 	void update(RealModifier* _Modifier) {
 			handler(value);
@@ -84,7 +87,7 @@ public:
 
 protected:
 	T value;
-	std::function<void(T)> handler;
+	std::function<void(T&)> handler;
 };
 
 class Feature { // class of features which define every object or container 

@@ -1,58 +1,49 @@
 #include "Ecosys.h"
-
-
-void heat(double& tmp) {
-	tmp =tmp + 10;
+                                                                                                                                                                                                                                                                                                              //BG
+// функции определ€ющие поведение модификаторов и свойств;
+void heat_m(double eff, Modifier* kek) {
+	kek->set_value(kek->get_value() + eff);
+	kek->set_effect(kek->get_value());
 }
-
-void choose_modifier(Modifier** tmp) {
-	*tmp = new Modifier("temperature", heat,"temperature", 20);
+void heat_f(double eff, Feature* kek) {
+	kek->set_value(kek->get_value() + eff);
+}
+void cap_m(double eff, Modifier* kek) {
+	kek->set_value(kek->get_value() + eff/2);
+	kek->set_effect(kek->get_value()/2);
 }
 
 
 int main() {
-	// container - pairs, where each pair would have following struct.
-	// <std::string type, std::function<T&> user_func>.
-	// use std::find to locate required functions. 
-	////test
-	std::string str;
-	//Container* Room = new Container(str);
-	//str = "temp";
-	//Container* Bottle = new Container(str);
-	//Room->add_container(Bottle);
-	/*int value = 10;
-	Modifier *tmp = new Modifier(str, str, value);
-	auto f1 = std::bind(&heat, std::placeholders::_1, tmp);
-	tmp->add_handler(f1);
-	tmp->update(tmp,f1);*/
-	//Modifier<int> *tmp_1 = new Modifier<int>(str, str, value);
-	//Room->add_modifier(tmp);
-	//Feature<int> *tmp_2 = new Feature<int>(str, str, f1, value);
-	//Room->add_feature(tmp_2);
-	std::cout << "Choose container/object" << std::endl;
-	std::cout << "1 - Container." << std::endl;
-	std::cout << "2 - Object." << std::endl;
-	int key;
-	std::cin >> key;
-	switch (key)
-	{
-	case 1: {
-		Container* tmp_0 = new Container();
-		std::cout << "Input Container name: ";
-		std::string str_0;
-		std::getline(std::cin,str_0);
-		tmp_0->set_name(str_0);
-		
-		//choose_modifier(&tmp);
-		
-		break; }
-	case 2: {
+	std::string str = "Room";
+	Container* tmp = new Container(str);
+	str = "Bottle";
+	Container* tmp_1 = new Container(str);
+	str = "Table";
+	Container* tmp_2 = new Container(str);
+	str = "Milk";
+	Object* tmp_3 = new Object(str);
+	str = "Temperature";
+	Feature* feat = new Feature(str, str, 20);
+	auto f1 = std::bind(&heat_f, std::placeholders::_1, feat);
+	feat->define_handler(f1);
+	tmp_3->add_feature(feat);
+	Modifier* modif_1 = new Modifier(str, "Table temperature", 40);
+	auto f2 = std::bind(&heat_m, std::placeholders::_1, modif_1);
+	modif_1->define_handler(f2);
+	Modifier* modif_2 = new Modifier(str, "Cap", 0);
+	auto f3 = std::bind(&cap_m, std::placeholders::_1, modif_2);
+	modif_2->define_handler(f3);
+	tmp_2->add_modifier(modif_1);
+	tmp_1->add_modifier(modif_2);
 
-		break; }
-	default:
-		std::cout << "Wrong choice!" << std::endl;
-		break;
-	}
-
-
+	tmp_2->add_container(tmp_1);
+	tmp_1->add_object(tmp_3);
+	tmp->add_container(tmp_2);
+	Modifier* modif_3 = new Modifier(str, "Room temperature", 50);
+	modif_3->define_handler(f2);
+	tmp->add_modifier(modif_3);
+	str = "Temperature";
+	tmp->make_affect(str, 100);
+																																																																														
 }

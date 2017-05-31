@@ -46,18 +46,21 @@ class Modifier {
 public:
 	Modifier(std::string _type, std::string _name, double _value) { set_name(_name); add_type(_type); is_active = true; value = _value; }
 
-	Modifier(std::string _type, std::function<void(double&)> _handler, std::string _name, double _value) { add_type(_type); add_handler(_handler); set_name(_name); set_value(_value); is_active = true; }
+//	Modifier(std::string _type, std::string _name, double _value) { add_type(_type); set_name(_name); set_value(_value); is_active = true; }
 
 	void set_name(std::string _name) { name = _name; }
 	std::string get_name() { return name; }
 
-	void set_value(double _value) { value = _value; notify(); }
+	void set_value(double _value) { value = _value; }
 	double get_value() { return value; }
+	void set_effect(double _value) { effect = _value; }
+	double get_effect() { return effect; }
 
 	void set_active(bool _active) { is_active = _active; }
 
 	void add_type(std::string _type) { type.push_back(_type); }
-	void get_type(std::vector<std::string> _type) { _type = type; }
+	void get_type(std::vector<std::string>& _type) { _type = type; }
+	bool find_type(std::string _type);
 
 	bool connect(Feature* _Feature);
 	bool connect(Modifier* _Modifier);
@@ -65,20 +68,27 @@ public:
 	void disconnect(Feature* _Feature);
 	void disconnect(Modifier* _Modifier);
 	
-	void add_handler(std::function<void(double&)> _handler) { handler = _handler; }
+	void define_handler(std::function<void(double)> _handler) { handler = _handler; }
 	
-	template<class F>
-	void update(Modifier* _Modifier, F f) {
-		f(value);
-		std::cout << "Modifier " << _Modifier->get_name() << " changed." << std::endl;
-		_Modifier->notify();
+	void update(Modifier* _Modifier) {
+		std::cout << "Modifier " << name << " changed." << std::endl;
+		std::cout << "Old value " << value << std::endl;
+		handler(_Modifier->get_effect());
+		std::cout << "New value " << value << std::endl;
+		notify();
 	}
+	void update(double _effect) {
+		handler(_effect);
+		notify();
+	}
+
 	void notify();
 
 	virtual ~Modifier();
 protected:
 	double value;
-	std::function<void(double&)> handler;
+	double effect;
+	std::function<void(double)> handler;
 	bool is_active;
 	std::string name;
 	std::vector<std::string> type;
@@ -89,9 +99,9 @@ protected:
 class Feature { // class of features which define every object or container 
 public:
 	Feature() { is_active = true; }
-	Feature(std::string _name, std::string _type, std::function<void(double&)> _handler, double _value) { set_name(_name); set_type(_type); add_handler(_handler); set_value(_value); is_active = true; }
+	Feature(std::string _name, std::string _type,double _value) { set_name(_name); set_type(_type); set_value(_value); is_active = true; }
 
-	void add_handler(std::function<void(double&)> _handler) { handler = _handler; }
+	void define_handler(std::function<void(double)> _handler) { handler = _handler; }
 
 	void set_value(double _value) { value = _value; }
 	double get_value() { return value; }
@@ -102,15 +112,16 @@ public:
 	void set_type(std::string _type) { type = _type; }
 	std::string get_type() { return type; }
 	
-	template <class F>
-	void update(Modifier* _Modifier, F f) {
-		f(value);
-		std::cout << "Feature " << get_name() << " has changed." << std::endl;
+	void update(Modifier* _Modifier) {
+		std::cout << "Feature " << name << " has changed." << std::endl;
+		std::cout << "Old value: " << value << std::endl;
+		handler(_Modifier->get_effect());
+		std::cout << "New value: " << value << std::endl;
 	}
 	
 	~Feature();
 protected:
-	std::function<void(double&)> handler;
+	std::function<void(double)> handler;
 	double value;
 	std::string name;
 	std::string type;
@@ -124,9 +135,12 @@ class Container;
 class Object { // object which contain features only
 public:
 	Object();
+	Object(std::string _name) : name(_name) {}
 
 	void set_name(std::string _name) { name = _name; }
 	std::string get_name() { return name; }
+
+	void connect_modifier(Modifier* _Modifier);
 
 	void add_feature(Feature* _Feature); 
 
@@ -157,11 +171,15 @@ public:
 
 	void remove_feature(Feature* _Feature);
 
+	void connect_modifier(Modifier* _Modifier);
+
 	void add_modifier(Modifier* _Modifier);
 
 	void add_object(Object* _Object); 
 
 	void add_container(Container* _Container);
+
+	void make_affect(const std::string _type, double aff);
 private:
 	std::string name;
 	std::vector<Feature*> _Features;

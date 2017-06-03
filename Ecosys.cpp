@@ -62,6 +62,16 @@ void Modifier::update(double _effect) {
 	notify();
 }
 
+void Modifier::get_info() {
+	std::cout << "Modifier " << name << std::endl;
+	std::cout << "Type " << std::endl;
+	for (size_t i = 0; i < type.size(); ++i) {
+		std::cout << type[i] << " ";
+	}
+	std::cout << std::endl;
+	std::cout << "Value " << value << std::endl;
+}
+
 Modifier::~Modifier() {
 	is_active = false;
 }
@@ -79,6 +89,12 @@ void Feature::update(Modifier* _Modifier){
 		std::cout << "Old value: " << value << std::endl;
 		handler(_Modifier->get_effect());
 		std::cout << "New value: " << value << std::endl;
+}
+void Feature::get_info() {
+	std::cout << "Modifier " << name << std::endl;
+	std::cout << "Type " << type << std::endl;
+	std::cout << "Value " << value << std::endl;
+	std::cout << "Is active " << is_active << std::endl;
 }
 
 Feature::~Feature() {
@@ -120,6 +136,14 @@ Feature* Object::get_feature(size_t i) {
 	
 }
 
+void Object::get_info() {
+	std::cout << "Object" << name << std::endl;
+	std::cout << "- Features -" << std::endl << std::endl;
+	for (size_t i = 0; i < _Features.size(); ++i) {
+		_Features[i]->get_info();
+	}
+}
+
 void Container::set_headmaster(Container* _Container) {
 	Headmaster = _Container;
 }
@@ -132,10 +156,12 @@ void Container::add_feature(Feature* _Feature) {
 
 }
 
-void Container::remove_feature(/*Feature* _Feature*/) {
+void Container::remove_feature() {
 	for (size_t i = 0; i < _Features.size(); ++i) {
-		if (!_Features[i]->get_status())
+		if (!_Features[i]->get_status()) {
+			std::cout << "Feature " << _Features[i]->get_name() << "with type " << _Features[i]->get_type() << " was deactivated..." << std::endl;
 			_Features.erase(std::remove(_Features.begin(), _Features.end(), _Features[i]), _Features.end());
+		}
 	}
 }
 void Container::connect_modifier(Modifier* _Modifier) {
@@ -247,4 +273,29 @@ void Container::make_affect(const std::string _type, double aff) {
 	remove_feature();
 	update_all();
 
+}
+
+void Container::get_info() {
+	std::cout << "Container " << name << std::endl;
+	std::cout << "Dependencies:	" << std::endl;
+	std::cout << "- Containers -" << std::endl << std::endl;
+	if (!_Containers.empty()) {
+		for (size_t i = 0; i < _Containers.size(); ++i) {
+			_Containers[i]->get_info();
+		}
+	}
+	else
+		std::cout << "NONE" << std::endl;
+	std::cout << "- Objects -" << std::endl << std::endl;
+	for (size_t i = 0; i < _Objects.size(); ++i) {
+		_Objects[i]->get_info();
+	}
+	std::cout << "- Modifiers -" << std::endl << std::endl;
+	for (size_t i = 0; i < _Modifiers.size(); ++i) {
+		_Modifiers[i]->get_info();
+	}
+	std::cout << "- Features -" << std::endl << std::endl;
+	for (size_t i = 0; i < _Features.size(); ++i) {
+		_Features[i]->get_info();
+	}
 }

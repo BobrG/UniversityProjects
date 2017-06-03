@@ -52,5 +52,6 @@ int main() {
 	str = "Temperature";
 	int affect = 100; // degrees;
 	tmp->make_affect(str, affect);
-																																																																													
+	std::cout << std::endl;
+	tmp->get_info();
 }

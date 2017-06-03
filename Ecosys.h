@@ -71,6 +71,8 @@ public:
 
 	void notify();
 
+	void get_info();
+
 	virtual ~Modifier();
 protected:
 	// ex temperature, hight, weight, etc);
@@ -108,8 +110,10 @@ public:
 	
 	void update(Modifier* _Modifier);
 	
+	void get_info();
+
 	~Feature();
-protected:
+private:
 	// behaviour function
 	std::function<void(double)> handler;
 	double value;
@@ -134,11 +138,13 @@ public:
 	
 	void add_feature(Feature* _Feature); 
 
-	void remove_feature(/*Feature* _Feature*/);
+	void remove_feature();
 	
 	void set_headmaster(Container* _Container);
 
 	Feature* get_feature(size_t i);
+
+	void get_info();
 
 private:
 	// pointer on master container which containes this object 
@@ -173,6 +179,8 @@ public:
 	void make_affect(const std::string _type, double aff);
 	// updates all dependent objects and containers; MAYBE WORKAROUND?
 	void update_all();
+
+	void get_info();
 private:
 	std::string name;
 	std::vector<Feature*> _Features;

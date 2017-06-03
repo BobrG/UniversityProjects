@@ -104,8 +104,11 @@ void Object::add_feature(Feature* _Feature) {
 	_Features.push_back(_Feature);
 }
 
-void Object::remove_feature(Feature* _Feature) {
-	_Features.erase(std::remove(_Features.begin(), _Features.end(), _Feature), _Features.end());
+void Object::remove_feature(/*Feature* _Feature*/) {
+	for (size_t i = 0; i < _Features.size(); ++i) {
+		if (!_Features[i]->get_status())
+			_Features.erase(std::remove(_Features.begin(), _Features.end(), _Features[i]), _Features.end());
+	}
 }
 
 Feature* Object::get_feature(size_t i) {
@@ -129,8 +132,11 @@ void Container::add_feature(Feature* _Feature) {
 
 }
 
-void Container::remove_feature(Feature* _Feature) {
-	_Features.erase(std::remove(_Features.begin(), _Features.end(), _Feature), _Features.end());
+void Container::remove_feature(/*Feature* _Feature*/) {
+	for (size_t i = 0; i < _Features.size(); ++i) {
+		if (!_Features[i]->get_status())
+			_Features.erase(std::remove(_Features.begin(), _Features.end(), _Features[i]), _Features.end());
+	}
 }
 void Container::connect_modifier(Modifier* _Modifier) {
 	bool flag = true;
@@ -219,6 +225,17 @@ void Container::add_object(Object* _Object) {
 		leave = false;
 	}
 }
+// function update_all walkes through all dependent containers and objects and makes them 
+// throw away unactive features;
+void Container::update_all() {
+	for (size_t i = 0; i < _Containers.size(); ++i) {
+		_Containers[i]->remove_feature();
+		_Containers[i]->update_all();
+	}
+	for (size_t i = 0; i < _Objects.size(); ++i) {
+		_Objects[i]->remove_feature();
+	}
+}
 
 void Container::make_affect(const std::string _type, double aff) {
 	std::cout << "Affecting modifiers in " << name << " with value " << aff <<std::endl;
@@ -227,5 +244,7 @@ void Container::make_affect(const std::string _type, double aff) {
 			_Modifiers[i]->update(aff);
 		} 
 	}
+	remove_feature();
+	update_all();
 
 }

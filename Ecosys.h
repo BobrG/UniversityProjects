@@ -51,6 +51,7 @@ public:
 	double get_effect() { return effect; }
 
 	void set_active(bool _active) { is_active = _active; }
+	bool get_status() { return is_active; }
 
 	void add_type(std::string _type) { type.push_back(_type); }
 	void get_type(std::vector<std::string>& _type) { _type = type; }
@@ -93,6 +94,9 @@ public:
 
 	void define_handler(std::function<void(double)> _handler) { handler = _handler; }
 
+	void set_active(bool on) { is_active = on; }
+	bool get_status() { return is_active; }
+
 	void set_value(double _value) { value = _value; }
 	double get_value() { return value; }
 
@@ -130,7 +134,7 @@ public:
 	
 	void add_feature(Feature* _Feature); 
 
-	void remove_feature(Feature* _Feature);
+	void remove_feature(/*Feature* _Feature*/);
 	
 	void set_headmaster(Container* _Container);
 
@@ -156,7 +160,7 @@ public:
 
 	void add_feature(Feature* _Feature);
 
-	void remove_feature(Feature* _Feature);
+	void remove_feature(/*Feature* _Feature*/);
 
 	void connect_modifier(Modifier* _Modifier);
 
@@ -167,6 +171,8 @@ public:
 	void add_container(Container* _Container);
 	// affecting on container's modifiers with type _type;
 	void make_affect(const std::string _type, double aff);
+	// updates all dependent objects and containers; MAYBE WORKAROUND?
+	void update_all();
 private:
 	std::string name;
 	std::vector<Feature*> _Features;

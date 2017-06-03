@@ -5,8 +5,7 @@
 #include <functional>
 #include <algorithm>
 #include <iostream>
-
-// Modifier adds handler to it's features!
+// CONSINDER TEMPLATE CLASSES
 
 // So, I understand the structure as follows:
 // Our smallest constituent unit is Feature. Features are subscribers or observers. They only react
@@ -37,16 +36,11 @@
 // modifier inherits methods of feature class because it can be described as a feature with possibility of
 // influence. This relations between features and modifiers are important because modifiers can influence on other modifiers.
 
-// ADD DERIVED CLASSES!!!
-
 class Feature;
-
 
 class Modifier {
 public:
 	Modifier(std::string _type, std::string _name, double _value) { set_name(_name); add_type(_type); is_active = true; value = _value; }
-
-//	Modifier(std::string _type, std::string _name, double _value) { add_type(_type); set_name(_name); set_value(_value); is_active = true; }
 
 	void set_name(std::string _name) { name = _name; }
 	std::string get_name() { return name; }
@@ -64,33 +58,29 @@ public:
 
 	bool connect(Feature* _Feature);
 	bool connect(Modifier* _Modifier);
-
+	
 	void disconnect(Feature* _Feature);
 	void disconnect(Modifier* _Modifier);
 	
 	void define_handler(std::function<void(double)> _handler) { handler = _handler; }
 	
-	void update(Modifier* _Modifier) {
-		std::cout << "Modifier " << name << " changed." << std::endl;
-		std::cout << "Old value " << value << std::endl;
-		handler(_Modifier->get_effect());
-		std::cout << "New value " << value << std::endl;
-		notify();
-	}
-	void update(double _effect) {
-		handler(_effect);
-		notify();
-	}
+	void update(Modifier* _Modifier);
+
+	void update(double _effect);
 
 	void notify();
 
 	virtual ~Modifier();
 protected:
+	// ex temperature, hight, weight, etc);
 	double value;
+	// effect - value which cases changes in connected features and modifiers;
 	double effect;
+	// handler - function which determines modifier behaviour;
 	std::function<void(double)> handler;
 	bool is_active;
 	std::string name;
+	// same modifier can affect various types; 
 	std::vector<std::string> type;
 	std::vector<Feature*> dependers_f;
 	std::vector<Modifier*> dependers_m;
@@ -112,15 +102,11 @@ public:
 	void set_type(std::string _type) { type = _type; }
 	std::string get_type() { return type; }
 	
-	void update(Modifier* _Modifier) {
-		std::cout << "Feature " << name << " has changed." << std::endl;
-		std::cout << "Old value: " << value << std::endl;
-		handler(_Modifier->get_effect());
-		std::cout << "New value: " << value << std::endl;
-	}
+	void update(Modifier* _Modifier);
 	
 	~Feature();
 protected:
+	// behaviour function
 	std::function<void(double)> handler;
 	double value;
 	std::string name;
@@ -129,34 +115,35 @@ protected:
 };
 
 
-// container and object 
+
 class Container;
 
-class Object { // object which contain features only
+class Object { // Object possess features
 public:
 	Object();
 	Object(std::string _name) : name(_name) {}
 
 	void set_name(std::string _name) { name = _name; }
 	std::string get_name() { return name; }
-
+	
 	void connect_modifier(Modifier* _Modifier);
-
+	
 	void add_feature(Feature* _Feature); 
 
 	void remove_feature(Feature* _Feature);
-
+	
 	void set_headmaster(Container* _Container);
 
 	Feature* get_feature(size_t i);
 
 private:
+	// pointer on master container which containes this object 
 	Container* Headmaster;
 	std::string name;
 	std::vector<Feature*> _Features;
 };
 
-class Container { // container inherits ability of holding features from object and adds ability of modifying features;
+class Container { // Container possess modifiers and features, it can contain objects and other containers
 public:
 	Container() { Headmaster = NULL; _Features.resize(0); _Modifiers.resize(0); _Containers.resize(0); _Objects.resize(0); }
 	Container(std::string& _name) : 
@@ -164,7 +151,7 @@ public:
 	
 	void set_name(std::string& tmp) { name = tmp; }
 	std::string get_name() { return name; }
-
+	// determine pointer on master container, which containes this container
 	void set_headmaster(Container* _Container);
 
 	void add_feature(Feature* _Feature);
@@ -178,7 +165,7 @@ public:
 	void add_object(Object* _Object); 
 
 	void add_container(Container* _Container);
-
+	// affecting on container's modifiers with type _type;
 	void make_affect(const std::string _type, double aff);
 private:
 	std::string name;
